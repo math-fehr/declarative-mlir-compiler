@@ -97,8 +97,8 @@ module {
 
 ## Building the Lua Compiler
 
-The Lua compile requires `antlr >= 4`. On Arch, install the Pacman package
-`antlr4`. On MacOS, install the Homebrew package `antlr`.
+The Lua compile requires `antlr >= 4`. On Arch, install the Pacman packages
+`antlr4` and `python-antlr4`. On MacOS, install the Homebrew package `antlr`.
 
 First, build the CMake targets `mlir`, `mlir-translate`, and `lua-parser`.
 
