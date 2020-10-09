@@ -302,7 +302,7 @@ Dialect @luallvm {
 
   Alias @capture_ptr  -> !llvm.ptr<ptr<ptr<struct<(i32, i64)>>>>
   Alias @fcn_ptr      -> !llvm.ptr<ptr<func<struct<(i32, ptr<struct<(i32, i64)>>)> (ptr<ptr<struct<(i32, i64)>>>, struct<(i32, ptr<struct<(i32, i64)>>)>)>>>
-  Alias @closure_ptr  -> !llvm.ptr<struct<(func<struct<(i32, ptr<struct<(i32, i64)>>)> (ptr<ptr<struct<(i32, i64)>>>, struct<(i32, ptr<struct<(i32, i64)>>)>)>, ptr<ptr<struct<(i32, i64)>>>)>>
+  Alias @closure_ptr  -> !llvm.ptr<struct<(ptr<func<struct<(i32, ptr<struct<(i32, i64)>>)> (ptr<ptr<struct<(i32, i64)>>>, struct<(i32, ptr<struct<(i32, i64)>>)>)>>, ptr<ptr<struct<(i32, i64)>>>)>>
 
   Op @alloca_value() -> (ref: !luallvm.ref)
     traits [@Alloc<"ref">] config { fmt = "attr-dict" }
