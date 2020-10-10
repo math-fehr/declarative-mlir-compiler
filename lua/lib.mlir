@@ -256,27 +256,26 @@ module {
   func @lua_convert_bool_like(%valv: !lua.val) -> i1 {
     %val = luac.into_alloca %valv
 
-    %ret_b = luac.get_bool_val %val
-    //%type = luac.get_type type(%val)
+    %type = luac.get_type type(%val)
 
-    //%nil_type = constant #luac.type_nil
-    //%is_nil = cmpi "eq", %type, %nil_type : !luac.type_enum
+    %nil_type = constant #luac.type_nil
+    %is_nil = cmpi "eq", %type, %nil_type : !luac.type_enum
 
-    //%ret_b = scf.if %is_nil -> i1 {
-    //  %false = constant 0 : i1
-    //  scf.yield %false : i1
-    //} else {
-    //  %bool_type = constant #luac.type_bool
-    //  %is_bool = cmpi "eq", %type, %bool_type : !luac.type_enum
-    //  %ret = scf.if %is_bool -> i1 {
-    //    %b = luac.get_bool_val %val
-    //    scf.yield %b : i1
-    //  } else {
-    //    %true = constant 1 : i1
-    //    scf.yield %true : i1
-    //  }
-    //  scf.yield %ret : i1
-    //}
+    %ret_b = scf.if %is_nil -> i1 {
+      %false = constant 0 : i1
+      scf.yield %false : i1
+    } else {
+      %bool_type = constant #luac.type_bool
+      %is_bool = cmpi "eq", %type, %bool_type : !luac.type_enum
+      %ret = scf.if %is_bool -> i1 {
+        %b = luac.get_bool_val %val
+        scf.yield %b : i1
+      } else {
+        %true = constant 1 : i1
+        scf.yield %true : i1
+      }
+      scf.yield %ret : i1
+    }
 
     return %ret_b : i1
   }
