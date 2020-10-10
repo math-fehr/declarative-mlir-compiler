@@ -1,0 +1,7 @@
+#!/bin/sh
+cd "$(dirname "$0")"
+mkdir -p build
+mkdir -p bin
+./luac.py $1.lua > build/$1.mlir
+mlir-translate --mlir-to-llvmir build/$1.mlir -o build/$1.ll
+clang++ build/$1.ll impl.cpp builtins.cpp -O2 -std=c++17 -o bin/$1

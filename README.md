@@ -132,17 +132,13 @@ print("fib(5) = ", fib(5))
 
 The Python script `lua/luac.py` calls the ANTLR parser and lowers the IR to
 LLVM IR. The resulting file must be compiled (`-O2` strongly recommended) and
-linked against a runtime `lua/impl.cpp` and the builtins `lua/builtins.cpp`.
+linked against a runtime `lua/impl.cpp` and the builtins `lua/builtins.cpp`. The command `lua/compile file` will compile a file `lua/file.lua` and create the resulting binary `lua/bin/file`.
+
+Compiling and running `example.lua` (hopefully) produces the correct output:
 
 ```bash
-python3 lua/luac.py example.lua > example.mlir
-mlir-translate --mlir-to-llvmir example.mlir -o example.ll
-clang++ example.ll lua/impl.cpp lua/builtins.cpp -O2 -std=c++17 -o example
-```
-
-Running (hopefully) produces the correct output:
-
-```bash
-me$ ./example
+me$ cd lua/
+me$ ./compile example
+me$ ./bin/example
 fib(5) = 5
 ```
