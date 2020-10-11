@@ -21,8 +21,8 @@ void print_impl(FormatFcn formatOutput, TPack pack) {
     TObject val = pack.objs[i];
     switch (val.type) {
     case NIL:
-      // ignore last nil
-      if (i < pack.size - 1) {
+      // ignore last nil unless it is just a nil
+      if (pack.size == 1 || i < pack.size - 1) {
         formatOutput(std::cout);
         std::cout << "nil";
       }
