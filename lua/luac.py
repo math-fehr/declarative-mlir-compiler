@@ -339,7 +339,7 @@ class Generator:
         elif ctx.HEX():
             attr = I64Attr(int(ctx.HEX().getText(), 16))
         elif ctx.FLOAT():
-            attr = F64Attr(float(ctx.FLOAT().getText()()))
+            attr = F64Attr(float(ctx.FLOAT().getText()))
         elif ctx.HEX_FLOAT():
             raise NotImplementedError("number HEX_FLOAT not implemented")
         else:
