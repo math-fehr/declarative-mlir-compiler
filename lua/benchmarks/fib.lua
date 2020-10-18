@@ -4,4 +4,4 @@ function fib(n)
   return fib(n-1) + fib(n-2)
 end
 
-print("fib(5) = ", fib(5))
+print("fib(35) = ", fib(35))
