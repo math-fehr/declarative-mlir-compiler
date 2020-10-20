@@ -1,0 +1,11 @@
+*.ll
+*.o
+*.s
+main
+libc.mlir
+test.mlir
+main.mlir
+libnone.mlir
+test-markov
+test-perf
+a.out
