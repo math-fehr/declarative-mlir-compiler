@@ -20,6 +20,14 @@ module {
     return %type_ok : i1
   }
 
+  func @luac_assert_int_type(%val: !lua.val) {
+    %is_int = call @luac_check_int_type(%val) : (!lua.val) -> i1
+    scf.if %is_int {
+      call @lua_abort() : () -> ()
+    }
+    return
+  }
+
   func @convert_to_float(%val: !lua.val) -> !lua.val {
     %is_float = call @luac_check_float_type(%val) : (!lua.val) -> i1
 
@@ -136,6 +144,30 @@ module {
       scf.yield %retv : !lua.val 
     }
 
+    return %ret : !lua.val
+  }
+
+  func @lua_div(%lhsv: !lua.val, %rhsv: !lua.val) -> !lua.val {
+    %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
+    %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
+    %lhs_float = luac.into_alloca %lhsv_float
+    %rhs_float = luac.into_alloca %rhsv_float
+    %lhs_double = luac.get_double_val %lhs_float
+    %rhs_double = luac.get_double_val %rhs_float
+    %ret_double = divf %lhs_double, %rhs_double : f64
+    %retv = luac.wrap_real %ret_double
+    %ret = luac.load_from %retv
+    return %ret : !lua.val
+  }
+
+  func @lua_mod(%lhsv: !lua.val, %rhsv: !lua.val) -> !lua.val {
+    %lhs = luac.into_alloca %lhsv
+    %rhs = luac.into_alloca %rhsv
+    %lhs_int = luac.get_int_val %lhs
+    %rhs_int = luac.get_int_val %rhs
+    %ret_int = remi_signed %lhs_int, %rhs_int : i64
+    %retv = luac.wrap_int %ret_int
+    %ret = luac.load_from %retv
     return %ret : !lua.val
   }
 

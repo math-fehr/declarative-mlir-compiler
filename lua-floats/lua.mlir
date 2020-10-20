@@ -188,6 +188,12 @@ Dialect @luac {
   Op @mul(lhs: !lua.value, rhs: !lua.value) -> (res: !lua.value)
     traits [@Alloc<"res">]
     config { fmt = "`(` operands `)` attr-dict" }
+  Op @div(lhs: !lua.value, rhs: !lua.value) -> (res: !lua.value)
+    traits [@Alloc<"res">]
+    config { fmt = "`(` operands `)` attr-dict" }
+  Op @mod(lhs: !lua.value, rhs: !lua.value) -> (res: !lua.value)
+    traits [@Alloc<"res">]
+    config { fmt = "`(` operands `)` attr-dict" }
   Op @pow(lhs: !lua.value, rhs: !lua.value) -> (res: !lua.value)
     traits [@Alloc<"res">]
     config { fmt = "`(` operands `)` attr-dict" }
