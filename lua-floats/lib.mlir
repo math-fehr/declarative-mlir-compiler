@@ -50,176 +50,92 @@ module {
   }
 
   func @lua_add(%lhsv: !lua.val, %rhsv: !lua.val) -> !lua.val {
-    %lhs = luac.into_alloca %lhsv
-    %rhs = luac.into_alloca %rhsv
+    %lhs_is_int = call @luac_check_int_type(%lhsv) : (!lua.val) -> i1
+    %rhs_is_int = call @luac_check_int_type(%rhsv) : (!lua.val) -> i1
+    %both_are_int = and %lhs_is_int, %rhs_is_int : i1
 
-    %lhs_is_float = call @luac_check_float_type(%lhsv) : (!lua.val) -> i1
-
-    // If the first operand is a float we convert the second one to a float
-    %ret = scf.if %lhs_is_float -> !lua.val {
-      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
-      %rhs_float = luac.into_alloca %rhsv_float
-      %lhs_num = luac.get_double_val %lhs
-      %rhs_num = luac.get_double_val %rhs_float
-      %ret_num = addf %lhs_num, %rhs_num : f64
-      %ret_v = luac.wrap_real %ret_num
+    %ret = scf.if %both_are_int -> !lua.val {
+      %lhs = luac.into_alloca %lhsv
+      %rhs = luac.into_alloca %rhsv
+      %lhs_int = luac.get_int_val %lhs
+      %rhs_int = luac.get_int_val %rhs
+      %ret_int = addi %lhs_int, %rhs_int : i64
+      %ret_v = luac.wrap_int %ret_int
       %retv = luac.load_from %ret_v
-      scf.yield %retv : !lua.val
+      scf.yield %retv : !lua.val 
     } else {
-      %rhs_is_float = call @luac_check_float_type(%rhsv) : (!lua.val) -> i1
-
-      // Otherwise, if the second one is a float, we convert the first one
-      // to a float
-      %ret2 = scf.if %rhs_is_float -> !lua.val {
-        %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
-        %lhs_float = luac.into_alloca %lhsv_float
-        %rhs_num = luac.get_double_val %rhs
-        %lhs_num = luac.get_double_val %lhs_float
-        %ret_num = addf %rhs_num, %lhs_num : f64
-        %ret_v = luac.wrap_real %ret_num
-        %retv = luac.load_from %ret_v
-        scf.yield %retv : !lua.val
-      } else {
-        %lhs_is_int = call @luac_check_int_type(%lhsv) : (!lua.val) -> i1
-        %rhs_is_int = call @luac_check_int_type(%rhsv) : (!lua.val) -> i1
-        %both_are_int = and %lhs_is_int, %rhs_is_int : i1
-
-        // Otherwise, we check that both arguments are integers
-        %ret3 = scf.if %both_are_int -> !lua.val {
-          %lhs_int = luac.get_int_val %lhs
-          %rhs_int = luac.get_int_val %rhs
-          %ret_int = addi %lhs_int, %rhs_int : i64
-          %ret_v = luac.wrap_int %ret_int
-          %retv = luac.load_from %ret_v
-          scf.yield %retv : !lua.val
-        } else {
-          // We abort if the operands are nor integers nor floats
-          call @lua_abort() : () -> ()
-          %ret_v = lua.nil
-          %retv = luac.load_from %ret_v
-          scf.yield %retv : !lua.val
-        }
-        scf.yield %ret3 : !lua.val
-      }
-      scf.yield %ret2 : !lua.val
+      %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
+      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
+      %lhs_float = luac.into_alloca %lhsv_float
+      %rhs_float = luac.into_alloca %rhsv_float
+      %lhs_double = luac.get_double_val %lhs_float
+      %rhs_double = luac.get_double_val %rhs_float
+      %ret_double = addf %lhs_double, %rhs_double : f64
+      %ret_v = luac.wrap_real %ret_double
+      %retv = luac.load_from %ret_v
+      scf.yield %retv : !lua.val 
     }
-      
+
     return %ret : !lua.val
   }
 
   func @lua_sub(%lhsv: !lua.val, %rhsv: !lua.val) -> !lua.val {
-    %lhs = luac.into_alloca %lhsv
-    %rhs = luac.into_alloca %rhsv
+    %lhs_is_int = call @luac_check_int_type(%lhsv) : (!lua.val) -> i1
+    %rhs_is_int = call @luac_check_int_type(%rhsv) : (!lua.val) -> i1
+    %both_are_int = and %lhs_is_int, %rhs_is_int : i1
 
-    %lhs_is_float = call @luac_check_float_type(%lhsv) : (!lua.val) -> i1
-
-    // If the first operand is a float we convert the second one to a float
-    %ret = scf.if %lhs_is_float -> !lua.val {
-      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
-      %rhs_float = luac.into_alloca %rhsv_float
-      %lhs_num = luac.get_double_val %lhs
-      %rhs_num = luac.get_double_val %rhs_float
-      %ret_num = subf %lhs_num, %rhs_num : f64
-      %ret_v = luac.wrap_real %ret_num
+    %ret = scf.if %both_are_int -> !lua.val {
+      %lhs = luac.into_alloca %lhsv
+      %rhs = luac.into_alloca %rhsv
+      %lhs_int = luac.get_int_val %lhs
+      %rhs_int = luac.get_int_val %rhs
+      %ret_int = subi %lhs_int, %rhs_int : i64
+      %ret_v = luac.wrap_int %ret_int
       %retv = luac.load_from %ret_v
-      scf.yield %retv : !lua.val
+      scf.yield %retv : !lua.val 
     } else {
-      %rhs_is_float = call @luac_check_float_type(%rhsv) : (!lua.val) -> i1
-
-      // Otherwise, if the second one is a float, we convert the first one
-      // to a float
-      %ret2 = scf.if %rhs_is_float -> !lua.val {
-        %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
-        %lhs_float = luac.into_alloca %lhsv_float
-        %rhs_num = luac.get_double_val %rhs
-        %lhs_num = luac.get_double_val %lhs_float
-        %ret_num = subf %rhs_num, %lhs_num : f64
-        %ret_v = luac.wrap_real %ret_num
-        %retv = luac.load_from %ret_v
-        scf.yield %retv : !lua.val
-      } else {
-        %lhs_is_int = call @luac_check_int_type(%lhsv) : (!lua.val) -> i1
-        %rhs_is_int = call @luac_check_int_type(%rhsv) : (!lua.val) -> i1
-        %both_are_int = and %lhs_is_int, %rhs_is_int : i1
-
-        // Otherwise, we check that both arguments are integers
-        %ret3 = scf.if %both_are_int -> !lua.val {
-          %lhs_int = luac.get_int_val %lhs
-          %rhs_int = luac.get_int_val %rhs
-          %ret_int = subi %lhs_int, %rhs_int : i64
-          %ret_v = luac.wrap_int %ret_int
-          %retv = luac.load_from %ret_v
-          scf.yield %retv : !lua.val
-        } else {
-          // We abort if the operands are nor integers nor floats
-          call @lua_abort() : () -> ()
-          %ret_v = lua.nil
-          %retv = luac.load_from %ret_v
-          scf.yield %retv : !lua.val
-        }
-        scf.yield %ret3 : !lua.val
-      }
-      scf.yield %ret2 : !lua.val
+      %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
+      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
+      %lhs_float = luac.into_alloca %lhsv_float
+      %rhs_float = luac.into_alloca %rhsv_float
+      %lhs_double = luac.get_double_val %lhs_float
+      %rhs_double = luac.get_double_val %rhs_float
+      %ret_double = subf %lhs_double, %rhs_double : f64
+      %ret_v = luac.wrap_real %ret_double
+      %retv = luac.load_from %ret_v
+      scf.yield %retv : !lua.val 
     }
-      
+
     return %ret : !lua.val
   }
 
   func @lua_mul(%lhsv: !lua.val, %rhsv: !lua.val) -> !lua.val {
-    %lhs = luac.into_alloca %lhsv
-    %rhs = luac.into_alloca %rhsv
+    %lhs_is_int = call @luac_check_int_type(%lhsv) : (!lua.val) -> i1
+    %rhs_is_int = call @luac_check_int_type(%rhsv) : (!lua.val) -> i1
+    %both_are_int = and %lhs_is_int, %rhs_is_int : i1
 
-    %lhs_is_float = call @luac_check_float_type(%lhsv) : (!lua.val) -> i1
-
-    // If the first operand is a float we convert the second one to a float
-    %ret = scf.if %lhs_is_float -> !lua.val {
-      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
-      %rhs_float = luac.into_alloca %rhsv_float
-      %lhs_num = luac.get_double_val %lhs
-      %rhs_num = luac.get_double_val %rhs_float
-      %ret_num = mulf %lhs_num, %rhs_num : f64
-      %ret_v = luac.wrap_real %ret_num
+    %ret = scf.if %both_are_int -> !lua.val {
+      %lhs = luac.into_alloca %lhsv
+      %rhs = luac.into_alloca %rhsv
+      %lhs_int = luac.get_int_val %lhs
+      %rhs_int = luac.get_int_val %rhs
+      %ret_int = muli %lhs_int, %rhs_int : i64
+      %ret_v = luac.wrap_int %ret_int
       %retv = luac.load_from %ret_v
-      scf.yield %retv : !lua.val
+      scf.yield %retv : !lua.val 
     } else {
-      %rhs_is_float = call @luac_check_float_type(%rhsv) : (!lua.val) -> i1
-
-      // Otherwise, if the second one is a float, we convert the first one
-      // to a float
-      %ret2 = scf.if %rhs_is_float -> !lua.val {
-        %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
-        %lhs_float = luac.into_alloca %lhsv_float
-        %rhs_num = luac.get_double_val %rhs
-        %lhs_num = luac.get_double_val %lhs_float
-        %ret_num = mulf %rhs_num, %lhs_num : f64
-        %ret_v = luac.wrap_real %ret_num
-        %retv = luac.load_from %ret_v
-        scf.yield %retv : !lua.val
-      } else {
-        %lhs_is_int = call @luac_check_int_type(%lhsv) : (!lua.val) -> i1
-        %rhs_is_int = call @luac_check_int_type(%rhsv) : (!lua.val) -> i1
-        %both_are_int = and %lhs_is_int, %rhs_is_int : i1
-
-        // Otherwise, we check that both arguments are integers
-        %ret3 = scf.if %both_are_int -> !lua.val {
-          %lhs_int = luac.get_int_val %lhs
-          %rhs_int = luac.get_int_val %rhs
-          %ret_int = muli %lhs_int, %rhs_int : i64
-          %ret_v = luac.wrap_int %ret_int
-          %retv = luac.load_from %ret_v
-          scf.yield %retv : !lua.val
-        } else {
-          // We abort if the operands are nor integers nor floats
-          call @lua_abort() : () -> ()
-          %ret_v = lua.nil
-          %retv = luac.load_from %ret_v
-          scf.yield %retv : !lua.val
-        }
-        scf.yield %ret3 : !lua.val
-      }
-      scf.yield %ret2 : !lua.val
+      %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
+      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
+      %lhs_float = luac.into_alloca %lhsv_float
+      %rhs_float = luac.into_alloca %rhsv_float
+      %lhs_double = luac.get_double_val %lhs_float
+      %rhs_double = luac.get_double_val %rhs_float
+      %ret_double = mulf %lhs_double, %rhs_double : f64
+      %ret_v = luac.wrap_real %ret_double
+      %retv = luac.load_from %ret_v
+      scf.yield %retv : !lua.val 
     }
-      
+
     return %ret : !lua.val
   }
 
