@@ -187,13 +187,28 @@ module {
   }
 
   func @lua_neg(%valv: !lua.val) -> !lua.val {
-    %val = luac.into_alloca %valv
 
+    %val_is_int = call @luac_check_int_type(%valv) : (!lua.val) -> i1
+
+    %ret = scf.if %val_is_int -> !lua.val {
+      %val = luac.into_alloca %valv
       %inv = constant -1 : i64
       %num = luac.get_int_val %val
       %ret_num = muli %inv, %num : i64
       %ret_v = luac.wrap_int %ret_num
       %ret = luac.load_from %ret_v
+      scf.yield %ret : !lua.val
+    } else {
+      %valv_float = call @convert_to_float(%valv) : (!lua.val) -> !lua.val
+      %val_float = luac.into_alloca %valv_float
+      %val_double = luac.get_double_val %val_float
+      %inv_double = constant -1.0 : f64
+      %ret_double = mulf %inv_double, %val_double : f64
+      %ret_v = luac.wrap_real %ret_double
+      %retv = luac.load_from %ret_v
+      scf.yield %retv : !lua.val 
+    }
+
     return %ret : !lua.val
   }
 
