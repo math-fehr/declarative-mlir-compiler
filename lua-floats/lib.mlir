@@ -57,6 +57,35 @@ module {
     return %res : !lua.val
   }
 
+  func @get_float_value(%val: !lua.val) -> f64 {
+    %is_float = call @luac_check_float_type(%val) : (!lua.val) -> i1
+
+    %res = scf.if %is_float -> f64 {
+      %valv = luac.into_alloca %val
+      %val_float = luac.get_double_val %valv
+
+      scf.yield %val_float : f64
+    } else {
+      %is_int = call @luac_check_int_type(%val) : (!lua.val) -> i1
+
+      %retv = scf.if %is_int -> f64 {
+        %alloca_val = luac.into_alloca %val
+
+        %val_int = luac.get_int_val %alloca_val
+        %val_float = std.sitofp %val_int : i64 to f64
+
+        scf.yield %val_float : f64
+      } else {
+        call @lua_abort() : () -> ()
+        %retv = constant 0.0 : f64
+        scf.yield %retv : f64
+      }
+      scf.yield %retv : f64
+    }
+
+    return %res : f64
+  }
+
   func @lua_add(%lhsv: !lua.val, %rhsv: !lua.val) -> !lua.val {
     %lhs_is_int = call @luac_check_int_type(%lhsv) : (!lua.val) -> i1
     %rhs_is_int = call @luac_check_int_type(%rhsv) : (!lua.val) -> i1
@@ -72,14 +101,10 @@ module {
       %retv = luac.load_from %ret_v
       scf.yield %retv : !lua.val 
     } else {
-      %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
-      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
-      %lhs_float = luac.into_alloca %lhsv_float
-      %rhs_float = luac.into_alloca %rhsv_float
-      %lhs_double = luac.get_double_val %lhs_float
-      %rhs_double = luac.get_double_val %rhs_float
-      %ret_double = addf %lhs_double, %rhs_double : f64
-      %ret_v = luac.wrap_real %ret_double
+      %lhs_float = call @get_float_value(%lhsv) : (!lua.val) -> f64
+      %rhs_float = call @get_float_value(%rhsv) : (!lua.val) -> f64
+      %ret_float = addf %lhs_float, %rhs_float : f64
+      %ret_v = luac.wrap_real %ret_float
       %retv = luac.load_from %ret_v
       scf.yield %retv : !lua.val 
     }
@@ -102,14 +127,10 @@ module {
       %retv = luac.load_from %ret_v
       scf.yield %retv : !lua.val 
     } else {
-      %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
-      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
-      %lhs_float = luac.into_alloca %lhsv_float
-      %rhs_float = luac.into_alloca %rhsv_float
-      %lhs_double = luac.get_double_val %lhs_float
-      %rhs_double = luac.get_double_val %rhs_float
-      %ret_double = subf %lhs_double, %rhs_double : f64
-      %ret_v = luac.wrap_real %ret_double
+      %lhs_float = call @get_float_value(%lhsv) : (!lua.val) -> f64
+      %rhs_float = call @get_float_value(%rhsv) : (!lua.val) -> f64
+      %ret_float = subf %lhs_float, %rhs_float : f64
+      %ret_v = luac.wrap_real %ret_float
       %retv = luac.load_from %ret_v
       scf.yield %retv : !lua.val 
     }
@@ -132,14 +153,10 @@ module {
       %retv = luac.load_from %ret_v
       scf.yield %retv : !lua.val 
     } else {
-      %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
-      %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
-      %lhs_float = luac.into_alloca %lhsv_float
-      %rhs_float = luac.into_alloca %rhsv_float
-      %lhs_double = luac.get_double_val %lhs_float
-      %rhs_double = luac.get_double_val %rhs_float
-      %ret_double = mulf %lhs_double, %rhs_double : f64
-      %ret_v = luac.wrap_real %ret_double
+      %lhs_float = call @get_float_value(%lhsv) : (!lua.val) -> f64
+      %rhs_float = call @get_float_value(%rhsv) : (!lua.val) -> f64
+      %ret_float = mulf %lhs_float, %rhs_float : f64
+      %ret_v = luac.wrap_real %ret_float
       %retv = luac.load_from %ret_v
       scf.yield %retv : !lua.val 
     }
@@ -148,14 +165,10 @@ module {
   }
 
   func @lua_div(%lhsv: !lua.val, %rhsv: !lua.val) -> !lua.val {
-    %lhsv_float = call @convert_to_float(%lhsv) : (!lua.val) -> !lua.val
-    %rhsv_float = call @convert_to_float(%rhsv) : (!lua.val) -> !lua.val
-    %lhs_float = luac.into_alloca %lhsv_float
-    %rhs_float = luac.into_alloca %rhsv_float
-    %lhs_double = luac.get_double_val %lhs_float
-    %rhs_double = luac.get_double_val %rhs_float
-    %ret_double = divf %lhs_double, %rhs_double : f64
-    %retv = luac.wrap_real %ret_double
+    %lhs_float = call @get_float_value(%lhsv) : (!lua.val) -> f64
+    %rhs_float = call @get_float_value(%rhsv) : (!lua.val) -> f64
+    %ret_float = divf %lhs_float, %rhs_float : f64
+    %retv = luac.wrap_real %ret_float
     %ret = luac.load_from %retv
     return %ret : !lua.val
   }
@@ -199,9 +212,7 @@ module {
       %ret = luac.load_from %ret_v
       scf.yield %ret : !lua.val
     } else {
-      %valv_float = call @convert_to_float(%valv) : (!lua.val) -> !lua.val
-      %val_float = luac.into_alloca %valv_float
-      %val_double = luac.get_double_val %val_float
+      %val_double = call @get_float_value(%valv) : (!lua.val) -> f64
       %inv_double = constant -1.0 : f64
       %ret_double = mulf %inv_double, %val_double : f64
       %ret_v = luac.wrap_real %ret_double
