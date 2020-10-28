@@ -135,7 +135,7 @@ Dialect @luaopt {
   Op @const_number() -> (res: !lua.value) { value = #dmc.AnyOf<#dmc.F<64>, #dmc.I<64>> }
     traits [@NoSideEffects]
 
-  Alias @table_prealloc -> 16
+  Alias @table_prealloc -> 8
   Op @table_get_prealloc(tbl: !lua.value, iv: i64) -> (val: !lua.value)
     traits [@NoSideEffects]
   Op @table_set_prealloc(tbl: !lua.value, iv: i64, val: !lua.value) -> ()

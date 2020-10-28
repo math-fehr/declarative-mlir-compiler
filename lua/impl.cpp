@@ -59,89 +59,89 @@ static_assert(sizeof(prealloc_t) == PREALLOC * sizeof(TObject),
 
 struct LuaTable {
   prealloc_t prealloc;
-  //std::vector<TObject> trailing;
-  //std::unordered_map<TObject, TObject, LuaHash, LuaEq> table;
+  std::vector<TObject> trailing;
+  std::unordered_map<TObject, TObject, LuaHash, LuaEq> table;
 
   TObject prealloc_get_or_alloc(int64_t iv) {
     return prealloc[iv];
   }
 
-  //TObject list_get_or_alloc(int64_t iv) {
-  //  --iv;
-  //  if (iv < PREALLOC) {
-  //    return prealloc_get_or_alloc(iv);
-  //  }
-  //  iv -= PREALLOC;
-  //  if (trailing.size() <= iv) {
-  //    trailing.resize(1 + iv * 2);
-  //  }
-  //  return trailing[iv];
-  //}
+  TObject list_get_or_alloc(int64_t iv) {
+    --iv;
+    if (iv < PREALLOC) {
+      return prealloc_get_or_alloc(iv);
+    }
+    iv -= PREALLOC;
+    if (trailing.size() <= iv) {
+      trailing.resize(1 + iv * 2);
+    }
+    return trailing[iv];
+  }
 
   TObject get_or_alloc(TObject key) {
-    return prealloc_get_or_alloc(key.u - 1);
-    //if (key.type == INT) {
-    //  auto iv = key.u;
-    //  if (iv > 0) {
-    //    return list_get_or_alloc(iv);
-    //  }
-    //}
-    //if (auto it = table.find(key); it != table.end()) {
-    //  return it->second;
-    //} else {
-    //  TObject nil{NIL};
-    //  table.emplace_hint(it, key, nil);
-    //  return nil;
-    //}
+    //return prealloc_get_or_alloc(key.u - 1);
+    if (key.type == INT) {
+      auto iv = key.u;
+      if (iv > 0) {
+        return list_get_or_alloc(iv);
+      }
+    }
+    if (auto it = table.find(key); it != table.end()) {
+      return it->second;
+    } else {
+      TObject nil{NIL};
+      table.emplace_hint(it, key, nil);
+      return nil;
+    }
   }
 
   void prealloc_insert_or_assign(int64_t iv, TObject val) {
     prealloc[iv] = val;
   }
 
-  //void list_insert_or_assign(int64_t iv, TObject val) {
-  //  --iv;
-  //  if (iv < PREALLOC) {
-  //    prealloc_insert_or_assign(iv, val);
-  //    return;
-  //  }
-  //  iv -= PREALLOC;
-  //  if (trailing.size() <= iv) {
-  //    trailing.resize(1 + iv * 2);
-  //  }
-  //  trailing[iv] = val;
-  //}
-
-  void insert_or_assign(TObject key, TObject val) {
-    prealloc_insert_or_assign(key.u - 1, val);
-    //if (key.type == INT) {
-    //  auto iv = key.u;
-    //  if (iv > 0) {
-    //    list_insert_or_assign(iv, val);
-    //    return;
-    //  }
-    //}
-    //table.insert_or_assign(key, val);
+  void list_insert_or_assign(int64_t iv, TObject val) {
+    --iv;
+    if (iv < PREALLOC) {
+      prealloc_insert_or_assign(iv, val);
+      return;
+    }
+    iv -= PREALLOC;
+    if (trailing.size() <= iv) {
+      trailing.resize(1 + iv * 2);
+    }
+    trailing[iv] = val;
   }
 
-  //int64_t get_list_size() {
-  //  int64_t size = 0;
-  //  for (size_t i = 0; i < PREALLOC; ++i) {
-  //    if (prealloc[i].type != NIL) {
-  //      ++size;
-  //    } else {
-  //      return size;
-  //    }
-  //  }
-  //  for (size_t i = 0; i < trailing.size(); ++i) {
-  //    if (trailing[i].type != NIL) {
-  //      ++size;
-  //    } else {
-  //      return size;
-  //    }
-  //  }
-  //  return size;
-  //}
+  void insert_or_assign(TObject key, TObject val) {
+    //prealloc_insert_or_assign(key.u - 1, val);
+    if (key.type == INT) {
+      auto iv = key.u;
+      if (iv > 0) {
+        list_insert_or_assign(iv, val);
+        return;
+      }
+    }
+    table.insert_or_assign(key, val);
+  }
+
+  int64_t get_list_size() {
+    int64_t size = 0;
+    for (size_t i = 0; i < PREALLOC; ++i) {
+      if (prealloc[i].type != NIL) {
+        ++size;
+      } else {
+        return size;
+      }
+    }
+    for (size_t i = 0; i < trailing.size(); ++i) {
+      if (trailing[i].type != NIL) {
+        ++size;
+      } else {
+        return size;
+      }
+    }
+    return size;
+  }
 };
 
 } // end anonymous namespace
@@ -170,8 +170,8 @@ TObject lua_table_get_prealloc_impl(void *impl, int64_t iv) {
 }
 
 int64_t lua_list_size_impl(void *impl) {
-  assert(false);
-  //return ((lua::LuaTable *) impl)->get_list_size();
+  //assert(false);
+  return ((lua::LuaTable *) impl)->get_list_size();
 }
 
 void *lua_load_string_impl(const char *data, uint64_t len) {
