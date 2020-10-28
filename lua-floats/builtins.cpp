@@ -248,6 +248,36 @@ TObject construct_builtin_print(void) {
   return print;
 }
 
+TPack fcn_builtin_sqrt(TCapture, TPack pack) {
+  if(pack.size != 1) {
+    abort();
+  }
+  TObject val = pack.objs[0];
+  TObject ret;
+  if (val.type == NUM) {
+    ret.type = NUM;
+    ret.num = std::sqrt(val.num);
+  } else if (val.type == INT) {
+    ret.type = NUM;
+    ret.num = std::sqrt(val.u);
+  } else {
+    abort();
+  }
+
+  TPack res;
+  res.size = 1;
+  res.objs = (Object *) malloc(sizeof(TObject));
+  res.objs[0] = ret;
+  return res;
+}
+
+TObject construct_builtin_sqrt(void) {
+  TObject sqrt;
+  sqrt.type = FCN;
+  sqrt.impl = new TClosure{&fcn_builtin_sqrt, nullptr};
+  return sqrt;
+}
+
 /*TObject *construct_builtin_string(void) {
   TObject *string = lua_alloc();
   lua_set_type(string, TBL);
@@ -340,6 +370,7 @@ TObject *construct_builtin_math(void) {
 extern "C" {
 
 TObject lua_builtin_print = lua::construct_builtin_print();
+TObject lua_builtin_sqrt = lua::construct_builtin_sqrt();
 //TObject lua_builtin_string = lua::construct_builtin_string();
 //TObject lua_builtin_table = lua::construct_builtin_table();
 //TObject lua_builtin_io = lua::construct_builtin_io();

@@ -717,7 +717,7 @@ def elideConcatPack(op, rewriter):
     rewriter.replace(op, op.tail())
     return True
 
-lua_builtins = set(["print", "string", "io", "table", "math"])
+lua_builtins = set(["print", "string", "io", "table", "math", "sqrt"])
 def raiseBuiltins(op:lua.alloc, rewriter:Builder):
     if op.var().getValue() not in lua_builtins:
         return False

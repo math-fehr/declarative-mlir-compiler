@@ -37,7 +37,7 @@ Dialect @lua {
     config { fmt = "$fcn `(` $args `)` attr-dict" }
 
   Alias @Builtin -> #dmc.AnyOf<
-      "math", "io", "table", "print", "string">
+      "math", "io", "table", "print", "string", "sqrt">
 
   Op @builtin() -> (val: !lua.value) { var = #lua.Builtin }
     traits [@NoSideEffects]
