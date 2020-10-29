@@ -3,6 +3,8 @@
 import os
 import time
 import sys
+import matplotlib.pyplot as plt
+import numpy as np
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 
@@ -24,6 +26,24 @@ def test_file(filename, n):
     for i in range(n):
         time2 += time_taken("luajit -O3 ./benchmarks/%s.lua > /dev/null" % filename)
     print("luajit:  %s s" % time2)
+    return (time1, time2)
+
+def plot(labels, luac_vals, luajit_vals):
+    x = np.arange(len(labels))
+    width = 0.35
+
+    fig, ax = plt.subplots()
+    rects1 = ax.bar(x - width / 2, luac_vals, width, label='luac')
+    rects1 = ax.bar(x + width / 2, luajit_vals, width, label='luajit')
+
+    ax.set_ylabel('Execution Time')
+    ax.set_title('Execution Time of both implementations')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+
+    fig.tight_layout()
+    plt.show()
 
 if __name__ == '__main__':
     n = 1
@@ -34,5 +54,17 @@ if __name__ == '__main__':
     os.system("mkdir -p benchmarks/bin")
     os.system("mkdir -p benchmarks/build")
 
+    labels = []
+    luac_vals = []
+    luajit_vals = []
+
     for filename in filenames:
-        test_file(filename, n)
+        (luac_val, luajit_val) = test_file(filename, n)
+        labels.append(filename)
+        luac_vals.append(luac_val)
+        luajit_vals.append(luajit_val)
+
+    print(labels)
+    print(luac_vals)
+    print(luajit_vals)
+    plot(labels, luac_vals, luajit_vals)
