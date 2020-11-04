@@ -26,15 +26,20 @@ def test_file(filename, n):
     for i in range(n):
         time2 += time_taken("luajit -O3 ./benchmarks/%s.lua > /dev/null" % filename)
     print("luajit:  %s s" % time2)
-    return (time1, time2)
+    time3 = 0
+    for i in range(n):
+        time3 += time_taken("lua ./benchmarks/%s.lua > /dev/null" % filename)
+    print("lua:  %s s" % time3)
+    return (time1, time2, time3)
 
-def plot(labels, luac_vals, luajit_vals):
+def plot(labels, luac_vals, luajit_vals, lua_vals):
     x = np.arange(len(labels))
-    width = 0.35
+    width = 0.15
 
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - width / 2, luac_vals, width, label='luac')
-    rects1 = ax.bar(x + width / 2, luajit_vals, width, label='luajit')
+    rects1 = ax.bar(x - width, luac_vals, width, label='luac')
+    rects2 = ax.bar(x, luajit_vals, width, label='luajit')
+    rects3 = ax.bar(x + width, lua_vals, width, label='lua')
 
     ax.set_ylabel('Execution Time')
     ax.set_title('Execution Time of both implementations')
@@ -57,14 +62,13 @@ if __name__ == '__main__':
     labels = []
     luac_vals = []
     luajit_vals = []
+    lua_vals = []
 
     for filename in filenames:
-        (luac_val, luajit_val) = test_file(filename, n)
+        (luac_val, luajit_val, lua_val) = test_file(filename, n)
         labels.append(filename)
         luac_vals.append(luac_val)
         luajit_vals.append(luajit_val)
+        lua_vals.append(lua_val)
 
-    print(labels)
-    print(luac_vals)
-    print(luajit_vals)
-    plot(labels, luac_vals, luajit_vals)
+    plot(labels, luac_vals, luajit_vals, lua_vals)
