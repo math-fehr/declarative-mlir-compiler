@@ -52,10 +52,10 @@ struct LuaEq {
   }
 };
 
-static constexpr std::size_t PREALLOC = 8;
+static constexpr std::size_t PREALLOC = 0;
 using prealloc_t = std::array<TObject, PREALLOC>;
-static_assert(sizeof(prealloc_t) == PREALLOC * sizeof(TObject),
-              "mismatched prealloc size");
+  //static_assert(sizeof(prealloc_t) == PREALLOC * sizeof(TObject),
+  //            "mismatched prealloc size");
 
 struct LuaTable {
   prealloc_t prealloc;
