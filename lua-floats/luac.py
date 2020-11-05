@@ -379,7 +379,7 @@ class Generator:
                 key = self.builder.create(lua.get_string, value=keyStr, loc=floc).res()
                 val = self.exp(field.exp(0))
             else:
-                key = self.builder.create(lua.number, value=F64Attr(idx), loc=floc).res()
+                key = self.builder.create(lua.number, value=I64Attr(idx), loc=floc).res()
                 val = self.exp(field.exp(0))
                 idx += 1
             self.builder.create(lua.table_set, tbl=tbl, key=key, val=val, loc=floc)
